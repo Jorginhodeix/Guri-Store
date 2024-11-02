@@ -16,7 +16,7 @@ programa
 	cadeia email_log = "", senha_log = "", nome_sing = "", email_sing = "", senha_sing = "", endereco_sing = ""
 
 	// inputs
-	inteiro posicaoy_inputs[] = { 220, 300, 380, 460 }, altura_input = 30
+	inteiro posicaoy_inputs[] = { 220, 300, 380, 460 }, altura_input = 30, inputSelecionado = -1
 	//inteiro posicaoy_inputs[0] = 240, posicaoy_inputs[1] = 320, posicaoy_input3 = 400, posicaoy_input4 = 0, altura_input = 30
 	real posicaox_input = (largura_janela / 2) - (largura_janela * 0.8 / 2), largura_input = largura_janela * 0.8
 
@@ -61,6 +61,7 @@ programa
 		enquanto(verdadeiro) {
 			// se apertar fora do input desativa as teclas no input previamente selecionado
 			se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() <= posicaox_input ou m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_input + largura_input ou m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_y() <= posicaoy_input ou m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_y() >= posicaoy_input + altura_input) {
+				inputSelecionado = -1
 				retorne
 			}
 			
@@ -80,6 +81,15 @@ programa
 			}
 			// chama a função para ficar renderizando a janela e ir mostrando oq está sendo escrito
 			desenhar_pag_auth()	
+		}
+	}
+
+	funcao desenharInput(cadeia label, inteiro posicaoy_input, cadeia value, logico inputEstaSelecionado) {
+		g.desenhar_texto(posicaox_input, posicaoy_input - 20, label)
+		g.desenhar_retangulo(posicaox_input, posicaoy_input, largura_input, altura_input, verdadeiro, falso)
+		g.desenhar_texto(posicaox_input + 10, posicaoy_input + (g.altura_texto(value) / 2), value)
+		se (inputEstaSelecionado) {
+			g.desenhar_retangulo(posicaox_input + 1, posicaoy_input + 1, largura_input, altura_input, verdadeiro, falso)
 		}
 	}
 	
@@ -137,8 +147,10 @@ programa
 		desenhar_pag_auth()
 		// começa a atribuir valores no input clicado
 	 	se(clicouInput(posicaoy_inputs[0])) {
+	 		inputSelecionado = 0
 	 		digitar_texto(email_log, posicaoy_inputs[0])
 	 	} senao se (clicouInput(posicaoy_inputs[1])) {
+	 		inputSelecionado = 1
 	 		digitar_texto(senha_log, posicaoy_inputs[1])
 	 	}
 		// redireciona para a tela cadastro ao clicar no link cadastre-se
@@ -193,23 +205,15 @@ programa
 			se(tela_atual == tela_cadastro_f ou tela_atual == tela_cadastro_u) {
 				campos[0] = nome_sing
 				campos[1] = email_sing
-				g.desenhar_texto(posicaox_input, posicaoy_inputs[n] - 20, "Nome")
-				g.desenhar_retangulo(posicaox_input, posicaoy_inputs[n], largura_input, altura_input, verdadeiro, falso)
-				g.desenhar_texto(posicaox_input + 10, posicaoy_inputs[n] + (g.altura_texto(campos[n]) / 2), campos[n])
+				desenharInput("Nome", posicaoy_inputs[n], campos[n], inputSelecionado == n)
 				n++
 			}
-			g.desenhar_texto(posicaox_input, posicaoy_inputs[n] - 20, "Email")
-			g.desenhar_retangulo(posicaox_input, posicaoy_inputs[n], largura_input, altura_input, verdadeiro, falso)
-			g.desenhar_texto(posicaox_input + 10, posicaoy_inputs[n] + (g.altura_texto(campos[n]) / 2), campos[n])
+			desenharInput("Email", posicaoy_inputs[n], campos[n], inputSelecionado == n)
 			n++
-			g.desenhar_texto(posicaox_input, posicaoy_inputs[n] - 20, "Senha")
-			g.desenhar_retangulo(posicaox_input, posicaoy_inputs[n], largura_input, altura_input, verdadeiro, falso)
-			g.desenhar_texto(posicaox_input + 10, posicaoy_inputs[n] + (g.altura_texto(campos[n]) / 2), campos[n])	
+			desenharInput("Senha", posicaoy_inputs[n], campos[n], inputSelecionado == n)
 			se(tela_atual == tela_cadastro_u) {
 				n++
-				g.desenhar_texto(posicaox_input, posicaoy_inputs[n] - 20, "Endereço")
-				g.desenhar_retangulo(posicaox_input, posicaoy_inputs[n], largura_input, altura_input, verdadeiro, falso)
-				g.desenhar_texto(posicaox_input + 10, posicaoy_inputs[n] + (g.altura_texto(campos[n]) / 2), campos[n])		
+				desenharInput("Endereço", posicaoy_inputs[n], campos[n], inputSelecionado == n)
 			}
 		}
 
@@ -279,14 +283,18 @@ programa
 		desenhar_pag_auth()
 
 		se (clicouInput(posicaoy_inputs[0])) {
+			inputSelecionado = 0
 			digitar_texto(nome_sing, posicaoy_inputs[0])
 		} senao se (clicouInput(posicaoy_inputs[1])) {
+			inputSelecionado = 1
 	 		digitar_texto(email_sing, posicaoy_inputs[1])
 	 	} senao se (clicouInput(posicaoy_inputs[2])) {
+	 		inputSelecionado = 2
 	 		digitar_texto(senha_sing, posicaoy_inputs[2])
 	 	}
 	 	se (tela_atual == tela_cadastro_u) {
 	 		se (clicouInput(posicaoy_inputs[3])) {
+	 			inputSelecionado = 3
 	 			digitar_texto(endereco_sing, posicaoy_inputs[3])
 	 		}	
 	 	}
@@ -322,7 +330,8 @@ programa
  * Esta seção do arquivo guarda informações do Portugol Studio.
  * Você pode apagá-la se estiver utilizando outro editor.
  * 
- * @POSICAO-CURSOR = 3037; 
+ * @POSICAO-CURSOR = 8509; 
+ * @DOBRAMENTO-CODIGO = [119];
  * @PONTOS-DE-PARADA = ;
  * @SIMBOLOS-INSPECIONADOS = ;
  * @FILTRO-ARVORE-TIPOS-DE-DADO = inteiro, real, logico, cadeia, caracter, vazio;
