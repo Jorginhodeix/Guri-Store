@@ -10,10 +10,14 @@ programa
 	inclua biblioteca Graficos --> g
 	
 	// telas
-	const inteiro tela_login = 1, tela_cadastro = 2, tela_cadastro_f = 3, tela_cadastro_u = 4, tela_inicio = 5
+	const inteiro tela_login = 1, tela_cadastro = 2, tela_cadastro_c = 3, tela_cadastro_f = 4, tela_inicio = 5
 	inteiro tela_atual = tela_login
 	inteiro largura_janela = 500, altura_janela = 775
-	cadeia email_log = "", senha_log = "", nome_sing = "", email_sing = "", senha_sing = "", endereco_sing = ""
+
+	// dados
+	cadeia email_log = "", senha_log = "", nome_sing = "", email_sing = "", senha_sing = "", endereco_sing = " "
+	inteiro id_usuario
+	logico email_existe = falso
 
 	// inputs
 	inteiro posicaoy_inputs[] = { 220, 300, 380, 460 }, altura_input = 30, inputSelecionado = -1
@@ -158,11 +162,21 @@ programa
 	 		tela_atual = tela_cadastro
 	 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
 	 	}
+
 	 	// vai para tela inicio ao apertar no botão login caso a senha e email estejam válidos
 	 	se(senha_log != "" e email_log != "" e m.botao_pressionado(m.BOTAO_ESQUERDO) e hoverBotao(posicaoy_entrar)) {
 			se(senha_log != "" e email_log != ""){
-	 			tela_atual = tela_inicio
-	 			g.definir_dimensoes_janela(1200, 775)
+				verificar_email_existente()
+				se(email_existe == verdadeiro) {
+				logico x = verificar_senha()
+				se(x == verdadeiro){
+	 			  tela_atual = tela_inicio
+	 			  g.definir_dimensoes_janela(1200, 775)
+				} senao {
+					escreva("num foi, mesmo")
+				}
+			} senao {
+					escreva("num foi, não")
 			}
 	 	}
 	}
@@ -263,6 +277,7 @@ programa
 		escreva("cadastro")
 		desenhar_pag_auth()
 		
+
 	 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e hoverBotao(posicaoy_clientes)) {
 	 		tela_atual = tela_cadastro_u
 	 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
@@ -298,7 +313,6 @@ programa
 	 			digitar_texto(endereco_sing, posicaoy_inputs[3])
 	 		}	
 	 	}
-
 		
 		se(clicouLink()) {
 	 		tela_atual = tela_login
@@ -306,8 +320,14 @@ programa
 	 	}
 	 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e hoverBotao(posicaoy_entrar)) {
 			se(nome_sing != "" e senha_sing != "" e email_sing != ""){
-	 			tela_atual = tela_inicio
-	 			g.definir_dimensoes_janela(1200, 775)
+				x = tx.posicao_texto(email_sing, "@gmail.com", 0)
+				y = tx.numero_caracteres(senha_sing)
+			se (x != -1 e y >= 8){
+				verificar_email_existente()
+				se (email_existe == falso) {
+				  salvar_usuario()
+	 			  tela_atual = tela_inicio
+	 			  g.definir_dimensoes_janela(1200, 775)
 			} senao {
 				escreva("num foi")
 			}
@@ -321,19 +341,69 @@ programa
 		g.renderizar()
 	}
 
-	funcao salvar_usuario (){
-		
+	funcao verificar_email_existente (){
+		inteiro usuarios = a.abrir_arquivo("usuarios.txt", a.MODO_LEITURA), i, linha = 0, p1, p2
+		logico x = falso
+		cadeia t = "", email = ""
+		enquanto(x == falso){
+			t = a.ler_linha(usuarios)
+			x = a.fim_arquivo(usuarios)
+			se(t != ""){
+				p1 = 0
+				p2 = 0
+				para(i = 1; i < 5; i++){
+				p1 = tx.posicao_texto("|", t, p2)
+				p2 = tx.posicao_texto("|", t, p1+1)
+				}
+			email = tx.extrair_subtexto(t, p1+1, p2)
+			se(email == email_log){
+				email_existe = verdadeiro
+				id_usuario = linha+1
+				x = verdadeiro
+			}
+			senao{
+				x = falso
+			}
+			}
+			linha++
+			}
+			a.fechar_arquivo(usuarios)
+		}
+    
+	funcao logico verificar_senha (){
+			inteiro usuarios = a.abrir_arquivo("usuarios.txt", a.MODO_LEITURA), i, p1, p2
+			cadeia t = "", senha = ""
+			para(i = 1; i <= id_usuario; i++){
+			t = a.ler_linha(usuarios)
+			}
+			p1 = 0
+			p2 = 0
+			para(i = 1; i < 7; i++){
+			p1 = tx.posicao_texto("|", t, p2)
+			p2 = tx.posicao_texto("|", t, p1+1)
+			}
+			senha = tx.extrair_subtexto(t, p1+1, p2)
+			a.fechar_arquivo(usuarios)
+			se(senha == senha_log){
+				retorne verdadeiro
+			}
+			senao{
+				retorne falso
+			}
 	}
-} 
-/* $$$ Portugol Studio $$$ 
- * 
- * Esta seção do arquivo guarda informações do Portugol Studio.
- * Você pode apagá-la se estiver utilizando outro editor.
- * 
- * @POSICAO-CURSOR = 8509; 
- * @DOBRAMENTO-CODIGO = [119];
- * @PONTOS-DE-PARADA = ;
- * @SIMBOLOS-INSPECIONADOS = ;
- * @FILTRO-ARVORE-TIPOS-DE-DADO = inteiro, real, logico, cadeia, caracter, vazio;
- * @FILTRO-ARVORE-TIPOS-DE-SIMBOLO = variavel, vetor, matriz, funcao;
- */
+
+	funcao salvar_usuario (){
+		inteiro usuarios = a.abrir_arquivo("usuarios.txt", a.MODO_LEITURA), linha = 0
+		logico x = falso
+		enquanto(x == falso){
+			a.ler_linha(usuarios)
+			x = a.fim_arquivo(usuarios)
+			linha++
+		}
+		a.fechar_arquivo(usuarios) 
+		usuarios = a.abrir_arquivo("usuarios.txt", a.MODO_ACRESCENTAR)
+		linha--
+		a.escrever_linha(linha+"|\t|"+nome_sing+"|\t|"+email_sing+"|\t|"+senha_sing+"|\t|"+endereco_sing+"|", usuarios)
+		a.fechar_arquivo(usuarios)
+	}
+}
