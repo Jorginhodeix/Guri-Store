@@ -12,10 +12,14 @@ programa
 	inclua biblioteca Graficos --> g
 	
 	// telas
-	const inteiro tela_login = 1, tela_cadastro = 2, tela_cadastro_f = 3, tela_cadastro_u = 4, tela_inicio = 5
+	const inteiro tela_login = 1, tela_cadastro = 2, tela_cadastro_c = 3, tela_cadastro_f = 4, tela_inicio = 5
 	inteiro tela_atual = tela_login
 	inteiro largura_janela = 600, altura_janela = 775
-	cadeia email_log = "", senha_log = "", nome_sing = "", email_sing = "", senha_sing = "", endereco_sing = ""
+
+	// dados
+	cadeia email_log = "", senha_log = "", nome_sing = "", email_sing = "", senha_sing = "", endereco_sing = " "
+	inteiro id_usuario
+	logico email_existe = falso
 
 	// inputs
 	inteiro posicaoy_input1 = 240, posicaoy_input2 = 320, posicaoy_input3 = 400, posicaoy_input4 = 480, altura_input = 30
@@ -47,11 +51,11 @@ programa
 				caso tela_cadastro:
 					pagina_cadastro()
 					pare
-				caso tela_cadastro_f:
-					pagina_cadastro_f()
+				caso tela_cadastro_c:
+					pagina_cadastro_c()
 					pare
-					caso tela_cadastro_u:
-					pagina_cadastro_u()
+					caso tela_cadastro_f:
+					pagina_cadastro_f()
 					pare
 				caso tela_inicio:
 					pagina_inicio()
@@ -102,10 +106,23 @@ programa
 	 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
 	 	}
 	 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_botoes e m.posicao_x() <= posicaox_botoes + largura_botoes e m.posicao_y() >= posicaoy_entrar e m.posicao_y() <= posicaoy_entrar + altura_botoes) {
-			se(senha_log != "" e email_log != ""){
+			se(email_log != "" e senha_log != ""){
+				verificar_email_existente ()
+				se(email_existe == verdadeiro){
+				logico x = verificar_senha()
+				se(x == verdadeiro){
 	 			tela_atual = tela_inicio
 	 			g.definir_dimensoes_janela(1200, 775)
+				}
+				senao{
+					escreva("num foi, mesmo")
+				}
 			}
+			
+				senao{
+					escreva("num foi, não")
+				}
+		}
 				senao{
 					escreva("num foi")
 			}
@@ -157,7 +174,7 @@ programa
 	 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
 	 	}
 	 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_botoes e m.posicao_x() <= posicaox_botoes + largura_botoes e m.posicao_y() >= posicaoy_clientes e m.posicao_y() <= posicaoy_clientes + altura_botoes) {
-	 		tela_atual = tela_cadastro_u
+	 		tela_atual = tela_cadastro_c
 	 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
 	 	}
 	 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_botoes e m.posicao_x() <= posicaox_botoes + largura_botoes e m.posicao_y() >= posicaoy_funcionarios e m.posicao_y() <= posicaoy_funcionarios + altura_botoes) {
@@ -200,10 +217,11 @@ programa
 		g.renderizar()
 		
 	}
-	funcao pagina_cadastro_u() {
+	funcao pagina_cadastro_c() {
+		inteiro x, y, z
 		limpa()
 		escreva("SHOPEE")
-		desenhar_pag_cadastro_u()
+		desenhar_pag_cadastro_c()
 		
 		se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_input e m.posicao_x() <= posicaox_input + largura_input e m.posicao_y() >= posicaoy_input1 e m.posicao_y() <= posicaoy_input1 + altura_input) {
 	 		digitar_texto(nome_sing, posicaoy_input1)
@@ -222,16 +240,25 @@ programa
 	 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
 		}
 	 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_botoes e m.posicao_x() <= posicaox_botoes + largura_botoes e m.posicao_y() >= posicaoy_entrar e m.posicao_y() <= posicaoy_entrar + altura_botoes) {
-			se(nome_sing != "" e senha_sing != "" e email_sing != ""){
+				x = tx.posicao_texto(email_sing, "@gmail.com", 0)
+				y = tx.numero_caracteres(senha_sing)
+			se (x != -1 e y >= 8){
+				verificar_email_existente()
+				se (email_existe == falso){
+				salvar_usuario()
 	 			tela_atual = tela_inicio
 	 			g.definir_dimensoes_janela(1200, 775)
 				}
+				}
+				senao{
+					escreva("num foi")
+				}
+			}
 				senao{
 					escreva("num foi")
 			}
-	 	}
 	}
-	funcao desenhar_pag_cadastro_u() {
+	funcao desenhar_pag_cadastro_c() {
 		g.definir_cor(g.COR_BRANCO)
 		g.limpar()
 		
@@ -274,6 +301,7 @@ programa
 		
 	}
 	funcao pagina_cadastro_f() {
+		inteiro x, y, z
 		limpa()
 		escreva("CLT")
 		desenhar_pag_cadastro_f()
@@ -293,9 +321,20 @@ programa
 		}
 	 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_botoes e m.posicao_x() <= posicaox_botoes + largura_botoes e m.posicao_y() >= posicaoy_entrar e m.posicao_y() <= posicaoy_entrar + altura_botoes) {
 			se(nome_sing != "" e senha_sing != "" e email_sing != ""){
+				x = tx.posicao_texto(email_sing, "@gmail.com", 0)
+				y = tx.numero_caracteres(senha_sing)
+			se (x != -1 e y >= 8){
+				verificar_email_existente()
+				se (email_existe == falso){
+				salvar_usuario()
 	 			tela_atual = tela_inicio
 	 			g.definir_dimensoes_janela(1200, 775)
 				}
+				}
+				senao{
+					escreva("num foi")
+				}
+			}
 				senao{
 					escreva("num foi")
 			}
@@ -331,10 +370,10 @@ programa
 		altura_signup = g.altura_texto(texto_signup)
 
 		se(m.posicao_x() >= posicaox_botoes e m.posicao_x() <= posicaox_botoes + largura_botoes e m.posicao_y() >= posicaoy_entrar e m.posicao_y() <= posicaoy_entrar + altura_botoes) {
-		g.desenhar_imagem(posicaox_botoes, posicaoy_entrar, criar_conta1)
+		g.desenhar_imagem(posicaox_botoes, posicaoy_entrar, criar_conta2)
 		}
 		senao{
-		g.desenhar_imagem(posicaox_botoes, posicaoy_entrar, criar_conta2)
+		g.desenhar_imagem(posicaox_botoes, posicaoy_entrar, criar_conta1)
 		}
 		
 		g.renderizar()
@@ -374,21 +413,81 @@ programa
 			senao se(tela_atual == tela_cadastro_f) {
 			desenhar_pag_cadastro_f()
 			}
-			senao se(tela_atual == tela_cadastro_u) {
-			desenhar_pag_cadastro_u()
+			senao se(tela_atual == tela_cadastro_c) {
+			desenhar_pag_cadastro_c()
 			}
 		}
 	} 
-	funcao salvar_usuario (){
-		
+	funcao verificar_email_existente (){
+		inteiro usuarios = a.abrir_arquivo("usuarios.txt", a.MODO_LEITURA), i, linha = 0, p1, p2
+		logico x = falso
+		cadeia t = "", email = ""
+		enquanto(x == falso){
+			t = a.ler_linha(usuarios)
+			x = a.fim_arquivo(usuarios)
+			se(t != ""){
+				p1 = 0
+				p2 = 0
+				para(i = 1; i < 5; i++){
+				p1 = tx.posicao_texto("|", t, p2)
+				p2 = tx.posicao_texto("|", t, p1+1)
+				}
+			email = tx.extrair_subtexto(t, p1+1, p2)
+			se(email == email_log){
+				email_existe = verdadeiro
+				id_usuario = linha+1
+				x = verdadeiro
+			}
+			senao{
+				x = falso
+			}
+			}
+			linha++
+			}
+			a.fechar_arquivo(usuarios)
+		}
+	funcao logico verificar_senha (){
+			inteiro usuarios = a.abrir_arquivo("usuarios.txt", a.MODO_LEITURA), i, p1, p2
+			cadeia t = "", senha = ""
+			para(i = 1; i <= id_usuario; i++){
+			t = a.ler_linha(usuarios)
+			}
+			p1 = 0
+			p2 = 0
+			para(i = 1; i < 7; i++){
+			p1 = tx.posicao_texto("|", t, p2)
+			p2 = tx.posicao_texto("|", t, p1+1)
+			}
+			senha = tx.extrair_subtexto(t, p1+1, p2)
+			a.fechar_arquivo(usuarios)
+			se(senha == senha_log){
+				retorne verdadeiro
+			}
+			senao{
+				retorne falso
+			}
 	}
-} 
+	funcao salvar_usuario (){
+		inteiro usuarios = a.abrir_arquivo("usuarios.txt", a.MODO_LEITURA), linha = 0
+		logico x = falso
+		enquanto(x == falso){
+			a.ler_linha(usuarios)
+			x = a.fim_arquivo(usuarios)
+			linha++
+		}
+		a.fechar_arquivo(usuarios) 
+		usuarios = a.abrir_arquivo("usuarios.txt", a.MODO_ACRESCENTAR)
+		linha--
+		a.escrever_linha(linha+"|\t|"+nome_sing+"|\t|"+email_sing+"|\t|"+senha_sing+"|\t|"+endereco_sing+"|", usuarios)
+		a.fechar_arquivo(usuarios)
+	}
+}
 /* $$$ Portugol Studio $$$ 
  * 
  * Esta seção do arquivo guarda informações do Portugol Studio.
  * Você pode apagá-la se estiver utilizando outro editor.
  * 
- * @POSICAO-CURSOR = 17889; 
+ * @POSICAO-CURSOR = 9168; 
  * @PONTOS-DE-PARADA = ;
  * @SIMBOLOS-INSPECIONADOS = ;
  * @FILTRO-ARVORE-TIPOS-DE-DADO = inteiro, real, logico, cadeia, caracter, vazio;
