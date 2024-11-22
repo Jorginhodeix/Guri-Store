@@ -15,7 +15,7 @@ programa
 	inteiro largura_janela = 500, altura_janela = 775
 
 	// dados
-	cadeia email_log = "", senha_log = "", nome_sing = "", email_sing = "", senha_sing = "", endereco_sing = ""
+	cadeia codigo = "eu amo gatos", campos[] = {"", "", "", ""} // nome, email, senha, endereço/código 
 	inteiro id_usuario
 
 	// inputs
@@ -59,7 +59,7 @@ programa
 		}
 	}
 
-	funcao digitar_texto(cadeia &campo, inteiro posicaoy_input) {
+	funcao digitar_texto(inteiro campo, inteiro posicaoy_input) {
 		enquanto(verdadeiro) {
 			// se apertar fora do input desativa as teclas no input previamente selecionado
 			se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() <= posicaox_input ou m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_input + largura_input ou m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_y() <= posicaoy_input ou m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_y() >= posicaoy_input + altura_input) {
@@ -69,17 +69,17 @@ programa
 			
 			se(tc.alguma_tecla_pressionada()) {
 				inteiro temp = tc.ler_tecla()
-				logico tamanhoMax = g.largura_texto(campo) >= largura_input - 20
+				logico tamanhoMax = g.largura_texto(campos[campo]) >= largura_input - 20
 				se (temp == tc.TECLA_BACKSPACE) {
-					inteiro tamanho = tx.numero_caracteres(campo)
+					inteiro tamanho = tx.numero_caracteres(campos[campo])
 					se (tamanho >= 1) {			
-						campo = tx.extrair_subtexto(campo, 0, tamanho - 1)
+						campos[campo] = tx.extrair_subtexto(campos[campo], 0, tamanho - 1)
 					}
 				} senao se (tc.tecla_pressionada(tc.TECLA_SHIFT) e temp == tc.TECLA_2) {
-	                	campo += "@"
+	                	campos[campo] += "@"
 	            	} senao se (nao tamanhoMax) {
 					caracter car = tc.caracter_tecla(temp)
-					campo += tx.caixa_baixa(tp.caracter_para_cadeia(car))			
+					campos[campo] += tx.caixa_baixa(tp.caracter_para_cadeia(car))			
 				}
 			}
 			// chama a função para ficar renderizando a janela e ir mostrando oq está sendo escrito
@@ -87,10 +87,13 @@ programa
 		}
 	}
 
-	funcao desenharInput(cadeia label, inteiro posicaoy_input, cadeia value, logico inputEstaSelecionado) {
+	funcao desenharInput(cadeia label, inteiro posicaoy_input, inteiro campo, logico inputEstaSelecionado) {
 		g.desenhar_texto(posicaox_input, posicaoy_input - 20, label)
 		g.desenhar_retangulo(posicaox_input, posicaoy_input, largura_input, altura_input, verdadeiro, falso)
-		g.desenhar_texto(posicaox_input + 10, posicaoy_input + (g.altura_texto(value) / 2), value)
+		se(tela_atual == tela_login) {
+			campo++
+		}
+		g.desenhar_texto(posicaox_input + 10, posicaoy_input + (g.altura_texto(campos[campo]) / 2), campos[campo])
 		se (inputEstaSelecionado) {
 			g.desenhar_retangulo(posicaox_input + 1, posicaoy_input + 1, largura_input, altura_input, verdadeiro, falso)
 		}
@@ -148,10 +151,10 @@ programa
 		// começa a atribuir valores no input clicado
 	 	se(clicouInput(posicaoy_inputs[0])) {
 	 		inputSelecionado = 0
-	 		digitar_texto(email_log, posicaoy_inputs[0])
+	 		digitar_texto(1, posicaoy_inputs[0])
 	 	} senao se (clicouInput(posicaoy_inputs[1])) {
 	 		inputSelecionado = 1
-	 		digitar_texto(senha_log, posicaoy_inputs[1])
+	 		digitar_texto(2, posicaoy_inputs[1])
 	 	}
 		// redireciona para a tela cadastro ao clicar no link cadastre-se
 	 	se(clicouLink()) {
@@ -161,7 +164,7 @@ programa
 
 	 	// vai para tela inicio ao apertar no botão login caso a senha e email estejam válidos
 	 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e hoverBotao(posicaoy_entrar)) {
-			se(email_log != "" e senha_log != "") {
+			se(campos[1] != "" e campos[2] != "") {
 				se(email_existe()) {
 					se(senha_esta_correta()) {
 			 			tela_atual = tela_inicio
@@ -209,33 +212,30 @@ programa
 				g.desenhar_imagem(posicaox_botoes, posicaoy_funcionarios, funcionarios2)
 			}
 		} senao {
-			inteiro n = 0
-			cadeia campos[] = { email_log, senha_log, senha_sing, endereco_sing }
-			se(tela_atual == tela_cadastro_f ou tela_atual == tela_cadastro_c) {
-				campos[0] = nome_sing
-				campos[1] = email_sing
-				desenharInput("Nome", posicaoy_inputs[n], campos[n], inputSelecionado == n)
-				n++
-			}
-			desenharInput("Email", posicaoy_inputs[n], campos[n], inputSelecionado == n)
-			n++
-			desenharInput("Senha", posicaoy_inputs[n], campos[n], inputSelecionado == n)
-			se(tela_atual == tela_cadastro_c) {
-				n++
-				desenharInput("Endereço", posicaoy_inputs[n], campos[n], inputSelecionado == n)
+			cadeia labels[] = {"Nome", "Email", "Senha", "Endereço"}
+			inteiro label = 0
+			// desenhar inputs
+			para(inteiro i = 0; i < 4; i++) {
+				se(i == 0 e tela_atual == tela_login) {
+					label++
+				}
+				se(i == 2 e tela_atual == tela_login) {
+					pare				
+				}
+				se(i == 3 e tela_atual == tela_cadastro_f) {
+					labels[i] = "Código"
+				}
+				desenharInput(labels[label], posicaoy_inputs[i], i, inputSelecionado == i)
+				label++
 			}
 		}
-
 		cadeia texto_link 
 		inteiro n = 1
 		se (tela_atual == tela_login) {
 			texto_link = "Cadastre-se"
 		} senao {
 			texto_link = "Voltar"
-			n++
-			se (tela_atual == tela_cadastro_c) {
-				n++	
-			}
+			n = 3
 		}
 		se (tela_atual == tela_cadastro) {
 			posicaox_link = (largura_botoes + posicaox_botoes) - (g.largura_texto(texto_link))
@@ -272,19 +272,23 @@ programa
 		escreva("cadastro")
 		desenhar_pag_auth()
 		
-
-	 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e hoverBotao(posicaoy_clientes)) {
-	 		tela_atual = tela_cadastro_c
-	 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
-	 	}
-	 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e hoverBotao(posicaoy_funcionarios)) {
-	 		tela_atual = tela_cadastro_f
-	 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
-	 	}
-	 	se(clicouLink()) {
-	 		tela_atual = tela_login
-	 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
-	 	}
+		se(m.botao_pressionado(m.BOTAO_ESQUERDO) e hoverBotao(posicaoy_clientes) ou m.botao_pressionado(m.BOTAO_ESQUERDO) e hoverBotao(posicaoy_funcionarios) ou clicouLink()) {
+			se(m.botao_pressionado(m.BOTAO_ESQUERDO) e hoverBotao(posicaoy_clientes)) {
+		 		tela_atual = tela_cadastro_c
+		 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
+		 	}
+		 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e hoverBotao(posicaoy_funcionarios)) {
+		 		tela_atual = tela_cadastro_f
+		 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
+		 	}
+		 	se(clicouLink()) {
+		 		tela_atual = tela_login
+		 		enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
+		 	}
+		 	para (inteiro i = 0; i < u.numero_elementos(campos); i++) {
+				campos[i] = ""
+			}
+		}
 	}
 	
 	funcao pagina_cadastrar() {
@@ -294,20 +298,17 @@ programa
 
 		se (clicouInput(posicaoy_inputs[0])) {
 			inputSelecionado = 0
-			digitar_texto(nome_sing, posicaoy_inputs[0])
+			digitar_texto(0, posicaoy_inputs[0])
 		} senao se (clicouInput(posicaoy_inputs[1])) {
 			inputSelecionado = 1
-	 		digitar_texto(email_sing, posicaoy_inputs[1])
+	 		digitar_texto(1, posicaoy_inputs[1])
 	 	} senao se (clicouInput(posicaoy_inputs[2])) {
 	 		inputSelecionado = 2
-	 		digitar_texto(senha_sing, posicaoy_inputs[2])
-	 	}
-	 	se (tela_atual == tela_cadastro_c) {
-	 		se (clicouInput(posicaoy_inputs[3])) {
-	 			inputSelecionado = 3
-	 			digitar_texto(endereco_sing, posicaoy_inputs[3])
-	 		}	
-	 	}
+	 		digitar_texto(2, posicaoy_inputs[2])
+	 	} senao se (clicouInput(posicaoy_inputs[3])) {
+ 			inputSelecionado = 3
+ 			digitar_texto(3, posicaoy_inputs[3])
+ 		}	
 		
 		se(clicouLink()) {
 	 		tela_atual = tela_cadastro
@@ -315,12 +316,10 @@ programa
 	 	}
 	 	
 	 	se(m.botao_pressionado(m.BOTAO_ESQUERDO) e hoverBotao(posicaoy_entrar)) {
-	 		inteiro estrutura_email = tx.posicao_texto("@gmail.com", email_sing, 0), numero_caracteres_senha = tx.numero_caracteres(senha_sing)
+	 		inteiro estrutura_email = tx.posicao_texto("@gmail.com", campos[1], 0), numero_caracteres_senha = tx.numero_caracteres(campos[2])
 			logico todos_campos_preenchidos
 
-			se (tela_atual == tela_cadastro_c e nome_sing != "" e email_sing != "" e senha_sing != "" e endereco_sing != "") {
-				todos_campos_preenchidos = verdadeiro
-			} senao se (tela_atual == tela_cadastro_f e nome_sing != "" e email_sing != "" e senha_sing != "") {
+			se (campos[0] != "" e campos[1] != "" e campos[2] != "" e campos[3] != "") { 
 				todos_campos_preenchidos = verdadeiro
 			} senao {
 				todos_campos_preenchidos = falso
@@ -329,9 +328,19 @@ programa
 	 		se (todos_campos_preenchidos) {
 	 			se (estrutura_email != -1 e numero_caracteres_senha >= 6){
 					se (nao email_existe()){
-						salvar_usuario()
-			 			tela_atual = tela_inicio
-			 			g.definir_dimensoes_janela(1200, 775)
+						logico codigo_esta_correto = falso
+						se(tela_atual == tela_cadastro_f) {
+							se(campos[3] == codigo) {
+								codigo_esta_correto = verdadeiro
+							} senao {
+								escreva("\nCódigo está incorreto")
+							}
+						}
+						se(tela_atual == tela_cadastro_f e codigo_esta_correto ou tela_atual == tela_cadastro_c) {
+							salvar_usuario()
+				 			tela_atual = tela_inicio
+				 			g.definir_dimensoes_janela(1200, 775)	
+						}
 					} senao {
 						escreva("\nEmail já está em uso")
 					}
@@ -369,7 +378,7 @@ programa
 					p2 = tx.posicao_texto("|", conteudoLinha, p1+1)
 				}				
 				email = tx.extrair_subtexto(conteudoLinha, p1+1, p2)
-				se(email == email_log){
+				se(email == campos[1]){
 					id_usuario = linha
 					a.fechar_arquivo(usuarios)
 					retorne verdadeiro
@@ -393,7 +402,7 @@ programa
 		}
 		senha = tx.extrair_subtexto(conteudoLinha, p1+1, p2)
 		a.fechar_arquivo(usuarios)
-		se (senha == senha_log){
+		se (senha == campos[2]){
 			retorne verdadeiro
 		} senao {
 			retorne falso
@@ -413,9 +422,9 @@ programa
 		a.fechar_arquivo(usuarios) 
 		usuarios = a.abrir_arquivo("usuarios.txt", a.MODO_ACRESCENTAR)
 		se (tela_atual == tela_cadastro_c) {
-			a.escrever_linha("\n" + linha + "|\t|" + nome_sing + "|\t|" + email_sing + "|\t|" + senha_sing + "|\t|" + endereco_sing + "|", usuarios)	
+			a.escrever_linha("\n" + linha + "|\t|" + campos[0] + "|\t|" + campos[1] + "|\t|" + campos[2] + "|\t|" + campos[3] + "|", usuarios)	
 		} senao {
-			a.escrever_linha("\n" + linha + "|\t|" + nome_sing + "|\t|" + email_sing + "|\t|" + senha_sing + "|", usuarios)
+			a.escrever_linha("\n" + linha + "|\t|" + campos[0] + "|\t|" + campos[1] + "|\t|" + campos[2] + "|\t|" + "Null" + "|", usuarios)
 		}
 		a.fechar_arquivo(usuarios)
 	}
@@ -425,8 +434,8 @@ programa
  * Esta seção do arquivo guarda informações do Portugol Studio.
  * Você pode apagá-la se estiver utilizando outro editor.
  * 
- * @POSICAO-CURSOR = 13978; 
- * @DOBRAMENTO-CODIGO = [37, 45, 53, 61, 103, 143, 269, 289, 357, 383];
+ * @POSICAO-CURSOR = 12360; 
+ * @DOBRAMENTO-CODIGO = [366, 392, 411];
  * @PONTOS-DE-PARADA = ;
  * @SIMBOLOS-INSPECIONADOS = ;
  * @FILTRO-ARVORE-TIPOS-DE-DADO = inteiro, real, logico, cadeia, caracter, vazio;
