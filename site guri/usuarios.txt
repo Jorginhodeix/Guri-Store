@@ -1,1 +1,2 @@
 0|	|nome|		|email|   	 	|senha|  	|endereço|
+1|	|cassio|	|cassio@gmail.com|	|123456|	|Null|
