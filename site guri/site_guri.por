@@ -18,7 +18,7 @@ programa
 	cadeia codigo = "eu amo gatos", campos_usuario[] = {"", "", "", ""} // nome, email, senha, endereço/código
 	const inteiro limite_produtos = 99
 	inteiro id_usuario, qtd_produtos[limite_produtos], produtos_carrinho[limite_produtos]
-	logico ehFuncionario = falso
+	logico ehFuncionario = falso, estaVisualizandoCarrinho = falso	
 
 	// inputs
 	inteiro posicaoy_inputs[] = { 220, 300, 380, 460 }, altura_input = 30, inputSelecionado = -1
@@ -28,7 +28,7 @@ programa
 	inteiro posicaox_link = 0, posicaoy_link = 0, largura_link = 0, altura_link = 0
 
 	// botões 
-	inteiro altura_botoes = 120, posicaoy_clientes = 200, posicaoy_funcionarios = posicaoy_clientes + 200, posicaoy_entrar = 550, margin = 30, altura_btn_add_to_cart = 30, largura_btn_add_to_cart = 150, altura_btn_quantidade = 30, largura_btn_mais_menos = 30, largura_btn_contador = 45
+	inteiro altura_botoes = 120, posicaoy_clientes = 200, posicaoy_funcionarios = posicaoy_clientes + 200, posicaoy_entrar = 550, margin = 30, altura_btn_add_to_cart = 30, largura_btn_add_to_cart = 150, altura_btn_quantidade = 30, largura_btn_mais_menos = 30, largura_btn_contador = 45, posicaox_carrinho = largura_janela_inicio - 50 - margin, posicaoy_carrinho = 30, altura_crud_btn = 30, largura_crud_btn = 70
 	real posicaox_botoes = (largura_janela_auth / 2) - (largura_janela_auth * 0.8 / 2), largura_botoes = largura_janela_auth * 0.8
 	
 	// texto
@@ -380,15 +380,15 @@ programa
 		limpa()
 		escreva("inicio")
 		desenhar_pag_inicio()
-
 	}
 
-	funcao desenhar_pag_inicio() {		
+	funcao desenhar_pag_inicio() {	
+		inteiro qtd_produtos_carrinho = 0		
 		g.definir_cor(g.COR_BRANCO)
 		g.limpar()
 		g.desenhar_imagem(margin, margin - 20, logo)
 		se(nao ehFuncionario) {
-			inteiro qtd_produtos_carrinho = 0, posicaox_carrinho = largura_janela_inicio - 50 - margin, posicaoy_carrinho = 30, posicaox_popup = posicaox_carrinho + g.largura_imagem(carrinho) - 15, posicaoy_popup = posicaoy_carrinho + 5
+			inteiro posicaox_popup = posicaox_carrinho + g.largura_imagem(carrinho) - 15, posicaoy_popup = posicaoy_carrinho + 5
 			g.desenhar_imagem(posicaox_carrinho, posicaoy_carrinho, carrinho)
 			para(inteiro i = 0; i < limite_produtos; i++) {
 				se(produtos_carrinho[i] > 0) {
@@ -401,6 +401,14 @@ programa
 				g.definir_cor(g.COR_BRANCO)
 				g.definir_tamanho_texto(10.0)
 				g.desenhar_texto(posicaox_popup + (15 / 2) - (g.largura_texto(tp.inteiro_para_cadeia(qtd_produtos_carrinho, 10)) / 2), posicaoy_popup + (15 / 2) - (g.altura_texto(tp.inteiro_para_cadeia(qtd_produtos_carrinho, 10)) / 2) + 1, tp.inteiro_para_cadeia(qtd_produtos_carrinho, 10))	
+			}
+			se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_carrinho e m.posicao_x() <= posicaox_carrinho + g.largura_imagem(carrinho) e m.posicao_y() >= posicaoy_carrinho e m.posicao_y() <= posicaoy_carrinho + g.altura_imagem(carrinho)) {
+				se(estaVisualizandoCarrinho) {
+					estaVisualizandoCarrinho = falso
+				} senao {
+					estaVisualizandoCarrinho = verdadeiro
+				}
+				enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
 			}
 		}
 		g.definir_estilo_texto(falso, verdadeiro, falso)
@@ -420,6 +428,9 @@ programa
 		g.desenhar_linha(margin, 195, largura_janela_inicio - margin, 195)
 		g.definir_estilo_texto(falso, falso, falso)
 		listarProdutos()
+		se(estaVisualizandoCarrinho) {
+			visualizarCarrinho(qtd_produtos_carrinho)
+		}
 		
 		g.renderizar()
 	}
@@ -432,9 +443,102 @@ programa
 			p2 = tx.posicao_texto("|", conteudoLinha, p1+1)
 		}
 	}
-
-	funcao visualizarCarrinho() {
+	
+	funcao visualizarCarrinho(inteiro qtd_produtos_carrinho) {
+		inteiro largura_janela = 450, altura_janela = 600, posicaox_janela = (largura_janela_inicio / 2) - (largura_janela / 2), posicaoy_janela = (altura_janela_inicio / 2) - (altura_janela / 2), margin_janela = posicaox_janela + margin, posicaoy_title = posicaoy_janela + 30, posicaox_cbc_carrinho_preco = posicaox_janela + margin + 120, posicaox_cbc_carrinho_quantidade = posicaox_janela + largura_janela - g.largura_texto("CARRINHO") - margin - 10
+		g.definir_cor(g.COR_BRANCO)
+		g.desenhar_retangulo(posicaox_janela, posicaoy_janela, largura_janela, altura_janela, falso, verdadeiro)	
+		g.definir_cor(g.COR_PRETO)
+		g.definir_estilo_texto(falso, verdadeiro, falso)
+		g.definir_tamanho_texto(25.0)
+		g.desenhar_texto(posicaox_janela + (largura_janela / 2) - (g.largura_texto("CARRINHO") / 2), posicaoy_title, "CARRINHO")
+		g.definir_tamanho_texto(18.0)
+		g.desenhar_texto(margin_janela, posicaoy_title + 50, "Produto")
+		g.desenhar_texto(posicaox_cbc_carrinho_preco, posicaoy_title + 50, "Preço")
+		g.desenhar_texto(posicaox_cbc_carrinho_quantidade, posicaoy_title + 50, "Qtd")
 		
+		g.definir_estilo_texto(falso, falso, falso)
+		g.desenhar_linha(posicaox_janela + margin, posicaoy_title + 75, posicaox_janela + largura_janela - margin, posicaoy_title + 75)
+
+		inteiro produtos = a.abrir_arquivo("produtos.txt", a.MODO_LEITURA), linha = 0, posicaoY = 200
+		logico x = falso
+		cadeia conteudoLinha = "", id_produto, nome_produto, estoque_produto, desconto_produto, preco_produto
+		real preco_final = 0.0, preco_total = 0.0
+		enquanto(x == falso){
+			inteiro quantidade_produto = 0
+			conteudoLinha = a.ler_linha(produtos)
+			x = a.fim_arquivo(produtos)
+			se(conteudoLinha != "" e linha != 0) {
+				inteiro p1 = 0, p2 = 0	
+				p1 = tx.posicao_texto("|", conteudoLinha, p2)
+				id_produto = tx.extrair_subtexto(conteudoLinha, p2, p1)
+				para(inteiro i = 0; i < limite_produtos; i++) {
+					se(produtos_carrinho[i] == tp.cadeia_para_inteiro(id_produto, 10)) {
+						quantidade_produto++
+					}
+				}
+				se(quantidade_produto > 0) {
+					p1 = 0
+					lerDadoLinha(3, p1, p2, conteudoLinha)	
+					nome_produto = tx.extrair_subtexto(conteudoLinha, p1+1, p2)
+					lerDadoLinha(5, p1, p2, conteudoLinha)	
+					estoque_produto = tx.extrair_subtexto(conteudoLinha, p1+1, p2)
+					lerDadoLinha(7, p1, p2, conteudoLinha)	
+					preco_produto = tx.extrair_subtexto(conteudoLinha, p1+1, p2)
+					lerDadoLinha(9, p1, p2, conteudoLinha)	
+					desconto_produto = tx.extrair_subtexto(conteudoLinha, p1+1, p2)
+					// valores: nome, estoque e preço
+					g.desenhar_texto(margin_janela, posicaoY, nome_produto)
+					se(desconto_produto != "0") {
+						preco_final = tp.cadeia_para_real(preco_produto) - tp.cadeia_para_real(preco_produto) * tp.cadeia_para_real(desconto_produto) / 100	
+						g.desenhar_texto(posicaox_cbc_carrinho_preco, posicaoY, "R$" + tp.real_para_cadeia(preco_final))
+						g.definir_estilo_texto(falso, falso, falso)
+						g.definir_cor(12300)
+						g.definir_estilo_texto(verdadeiro, falso, falso)
+						g.desenhar_texto(posicaox_cbc_carrinho_preco + g.largura_texto("R$" + tp.real_para_cadeia(preco_final)) + 10, posicaoY, "~R$" + preco_produto + "~")
+						g.definir_cor(g.COR_PRETO)
+						g.definir_estilo_texto(falso, falso, falso)
+					} senao {
+						g.desenhar_texto(posicaox_cbc_carrinho_preco, posicaoY, "R$" + preco_produto)
+					}
+					g.desenhar_texto(posicaox_cbc_carrinho_quantidade, posicaoY, tp.inteiro_para_cadeia(quantidade_produto, 10))
+					
+					// botao remover
+					inteiro posicaox_btn_remover = posicaox_janela + largura_janela - largura_crud_btn - margin, posicaoy_btn_remover = posicaoY - 5
+					g.definir_cor(g.COR_VERMELHO)
+					g.desenhar_retangulo(posicaox_btn_remover, posicaoy_btn_remover, largura_crud_btn, altura_crud_btn, verdadeiro, verdadeiro)
+					g.definir_cor(g.COR_BRANCO)
+					g.definir_tamanho_texto(13.0)
+					g.definir_estilo_texto(falso, verdadeiro, falso)
+					g.desenhar_texto(posicaox_btn_remover + (largura_crud_btn / 2) - (g.largura_texto("Remover") / 2), posicaoy_btn_remover + (altura_crud_btn / 2) - (g.altura_texto("Remover") / 2), "Remover")
+					g.definir_cor(g.COR_PRETO)
+					g.definir_tamanho_texto(18.0)
+					g.definir_estilo_texto(falso, falso, falso)
+					se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_btn_remover e m.posicao_x() <= posicaox_btn_remover + largura_crud_btn e m.posicao_y() >= posicaoy_btn_remover e m.posicao_y() <= posicaoy_btn_remover + altura_crud_btn) {
+						para(inteiro i = 0; i < limite_produtos; i++) {
+							se(produtos_carrinho[i] == tp.cadeia_para_inteiro(id_produto, 10)) {
+								produtos_carrinho[i] = 0
+								pare
+							}
+						}
+						enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
+					}
+	
+					tp.cadeia_para_real(preco_produto)
+					preco_total += preco_final
+					g.desenhar_linha(posicaox_janela + margin, posicaoY + 35, posicaox_janela + largura_janela - margin, posicaoY + 35)
+					posicaoY += 50
+				}
+			}
+			se(x e qtd_produtos_carrinho > 0) {
+				g.desenhar_texto(posicaox_janela + largura_janela - g.largura_texto("Total: R$" + tp.real_para_cadeia(preco_total)) - margin, posicaoY, "Total: R$" + tp.real_para_cadeia(preco_total))
+			} senao se (x e qtd_produtos_carrinho == 0) {
+				cadeia texto = "Nenhum produto adicionado no carrinho :/"
+				g.desenhar_texto(posicaox_janela + (largura_janela / 2) - (g.largura_texto(texto) / 2), posicaoy_janela + (altura_janela / 2) - (g.altura_texto(texto) / 2) - 50, texto)
+			}
+			linha++
+		}
+		a.fechar_arquivo(produtos)
 	}
 
 	funcao adicionarAoCarrinho(inteiro linha) {
@@ -489,7 +593,7 @@ programa
 					qtd_produtos[linha] = 0
 				}
 				g.desenhar_texto(posicaox_btn_contador + (largura_btn_contador / 2) - (g.largura_texto(tp.inteiro_para_cadeia(qtd_produtos[linha], 10)) / 2), posicaoy_btn_qtd + (altura_btn_quantidade / 2) - (g.altura_texto(tp.inteiro_para_cadeia(qtd_produtos[linha], 10)) / 2), tp.inteiro_para_cadeia(qtd_produtos[linha], 10))
-				se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_cbc_quantidade e m.posicao_x() <= posicaox_cbc_quantidade + largura_btn_mais_menos e m.posicao_y() >= posicaoy_btn_qtd e m.posicao_y() <= posicaoy_btn_qtd + altura_btn_quantidade) {
+				se(nao estaVisualizandoCarrinho e m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_cbc_quantidade e m.posicao_x() <= posicaox_cbc_quantidade + largura_btn_mais_menos e m.posicao_y() >= posicaoy_btn_qtd e m.posicao_y() <= posicaoy_btn_qtd + altura_btn_quantidade) {
 					se(qtd_produtos[linha] == 1) {
 						qtd_produtos[linha] = tp.cadeia_para_inteiro(estoque_produto, 10)
 					} senao {
@@ -497,7 +601,7 @@ programa
 					}
 					enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
 				}
-				se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_btn_contador + largura_btn_contador + 5 e m.posicao_x() <= posicaox_btn_contador + largura_btn_contador + 5 + largura_btn_mais_menos e m.posicao_y() >= posicaoy_btn_qtd e m.posicao_y() <= posicaoy_btn_qtd + altura_btn_quantidade) {
+				se(nao estaVisualizandoCarrinho e m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_btn_contador + largura_btn_contador + 5 e m.posicao_x() <= posicaox_btn_contador + largura_btn_contador + 5 + largura_btn_mais_menos e m.posicao_y() >= posicaoy_btn_qtd e m.posicao_y() <= posicaoy_btn_qtd + altura_btn_quantidade) {
 					se(qtd_produtos[linha] == tp.cadeia_para_inteiro(estoque_produto, 10)) {
 						qtd_produtos[linha] = 1
 					} senao {
@@ -623,8 +727,8 @@ programa
  * Esta seção do arquivo guarda informações do Portugol Studio.
  * Você pode apagá-la se estiver utilizando outro editor.
  * 
- * @POSICAO-CURSOR = 14250; 
- * @DOBRAMENTO-CODIGO = [40, 48, 56, 64, 92, 109, 163, 201, 287, 311, 385, 426, 435, 439, 545, 568, 587, 584, 600];
+ * @POSICAO-CURSOR = 21844; 
+ * @DOBRAMENTO-CODIGO = [40, 48, 56, 64, 92, 104, 109, 133, 163, 201, 287, 311, 437, 543];
  * @PONTOS-DE-PARADA = ;
  * @SIMBOLOS-INSPECIONADOS = ;
  * @FILTRO-ARVORE-TIPOS-DE-DADO = inteiro, real, logico, cadeia, caracter, vazio;
