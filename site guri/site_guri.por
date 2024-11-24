@@ -537,6 +537,28 @@ programa
 			desenharInput(labels[label], posicaoy_inputs[i], i, inputSelecionado == i)
 			label++
 		}
+		// botao confirmar
+		inteiro posicaox_btn_confirmar = posicaox_janela + (largura_janela / 2) - (largura_btn_confirmar / 2), posicaoy_btn_confirmar = posicaoy_janela + altura_janela - (altura_btn_confirmar / 2) - margin - 70
+		g.desenhar_imagem(posicaox_btn_confirmar, posicaoy_btn_confirmar, btn_confirmar)
+		se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_btn_confirmar e m.posicao_x() <= posicaox_btn_confirmar + largura_btn_confirmar e m.posicao_y() >= posicaoy_btn_confirmar e m.posicao_y() <= posicaoy_btn_confirmar + altura_btn_confirmar) {
+			logico todos_campos_preenchidos
+
+			se (campos_produto[0] != "" e campos_produto[1] != "" e campos_produto[2] != "") { 
+				todos_campos_preenchidos = verdadeiro
+			} senao {
+				todos_campos_preenchidos = falso
+			}
+
+	 		se (todos_campos_preenchidos) {
+	 			se(campos_produto[3] == "") {
+	 				campos_produto[3] = "0"
+	 			}
+	 			
+	 		} senao {
+	 			escreva("\nPreencha os campos nome, estoque e preço")
+	 		}
+			enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
+		}
 	}
 	
 	funcao visualizarCarrinho(inteiro qtd_produtos_carrinho) {
@@ -859,8 +881,8 @@ programa
  * Esta seção do arquivo guarda informações do Portugol Studio.
  * Você pode apagá-la se estiver utilizando outro editor.
  * 
- * @POSICAO-CURSOR = 3508; 
- * @DOBRAMENTO-CODIGO = [41, 49, 57, 65, 114, 133, 138, 162, 319, 343, 503, 652, 781, 804, 820, 836];
+ * @POSICAO-CURSOR = 22647; 
+ * @DOBRAMENTO-CODIGO = [41, 49, 57, 65, 114, 133, 138, 319, 503, 674, 803, 826, 842, 858];
  * @PONTOS-DE-PARADA = ;
  * @SIMBOLOS-INSPECIONADOS = ;
  * @FILTRO-ARVORE-TIPOS-DE-DADO = inteiro, real, logico, cadeia, caracter, vazio;
