@@ -1,4 +1,1 @@
-0|	|nome|		|estoque|   	 	|preço|  	|desconto(%)|
-1|	|batata|	|10|   	 		|20.0|  	|10|
-2|	|feijão|	|5|   	 		|40.0|  	|0|
-3|	|salame|	|0|   	 		|10.0|  	|50|
+0|	|nome|		|estoque|    	|preço|  	|desconto(%)|1|	|salame|	|12|		|20|		|5|2|	|trigo|		|15|		|10|		|0|3|	|batata|	|10|		|30|		|10|

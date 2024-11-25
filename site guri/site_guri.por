@@ -19,7 +19,7 @@ programa
 	cadeia codigo = "eu amo gatos", campos_usuario[] = {"", "", "", ""}, campos_produto[] = {"", "", "", ""}
 	const inteiro limite_produtos = 99
 	inteiro id_usuario, qtd_produtos[limite_produtos], produtos_carrinho[limite_produtos]
-	logico ehFuncionario = verdadeiro, estaVisualizandoCarrinho = falso, estaModificandoProdutos = falso
+	logico ehFuncionario = verdadeiro, estaVisualizandoCarrinho = falso, estaModificandoProdutos = falso, semProdutos = verdadeiro
 
 	// inputs
 	inteiro posicaoy_inputs[] = { 220, 300, 380, 460 }, altura_input = 30, inputSelecionado = -1
@@ -457,6 +457,7 @@ programa
 				enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
 			}
 		} senao {
+			// botão adicionar
 			inteiro largura_adicionar = 100, altura_adicionar = 35, posicaox_adicionar = largura_janela_inicio - largura_adicionar - margin, posicaoy_adicionar = margin
 			g.definir_cor(g.COR_VERDE)
 			g.desenhar_retangulo(posicaox_adicionar, posicaoy_adicionar, largura_adicionar, altura_adicionar, verdadeiro, verdadeiro)
@@ -471,10 +472,10 @@ programa
 				} senao {
 					estaModificandoProdutos = verdadeiro	
 				}
+				para(inteiro i = 0; i < 4; i++) {
+					campos_produto[i] = ""
+				}
 				enquanto (m.botao_pressionado(m.BOTAO_ESQUERDO)) {}
-			}
-			se(estaModificandoProdutos) {
-				adicionarProduto()
 			}
 		}
 		g.definir_estilo_texto(falso, verdadeiro, falso)
@@ -497,7 +498,9 @@ programa
 		se(estaVisualizandoCarrinho) {
 			visualizarCarrinho(qtd_produtos_carrinho)
 		}
-		
+		se(estaModificandoProdutos) {
+			adicionarProduto()
+		}
 		g.renderizar()
 	}
 
@@ -553,7 +556,7 @@ programa
 	 			se(campos_produto[3] == "") {
 	 				campos_produto[3] = "0"
 	 			}
-	 			
+	 			salvar_produto()
 	 		} senao {
 	 			escreva("\nPreencha os campos nome, estoque e preço")
 	 		}
@@ -692,6 +695,7 @@ programa
 			x = a.fim_arquivo(produtos)
 			se(conteudoLinha != "" e linha != 0) {
 				inteiro p1 = 0, p2 = 0	
+				semProdutos  = falso
 				lerDadoLinha(3, p1, p2, conteudoLinha)	
 				nome_produto = tx.extrair_subtexto(conteudoLinha, p1+1, p2)
 				lerDadoLinha(5, p1, p2, conteudoLinha)	
@@ -792,9 +796,19 @@ programa
 					inteiro posicaox_delete = largura_janela_inicio - tamanho_crud_btn - margin, posicaox_edit = largura_janela_inicio - tamanho_crud_btn * 2 - margin - 20, posicaoy_btn = posicaoY - 5
 					g.desenhar_imagem(posicaox_delete, posicaoy_btn, delete_icon)
 					g.desenhar_imagem(posicaox_edit, posicaoy_btn, edit_icon)
+					se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_delete e m.posicao_x() <= posicaox_delete + tamanho_crud_btn e m.posicao_y() >= posicaoy_btn e m.posicao_y() <= posicaoy_btn + tamanho_crud_btn) {
+						deletar_produto(linha, conteudoLinha)
+					}
+					se(m.botao_pressionado(m.BOTAO_ESQUERDO) e m.posicao_x() >= posicaox_edit e m.posicao_x() <= posicaox_edit + tamanho_crud_btn e m.posicao_y() >= posicaoy_btn e m.posicao_y() <= posicaoy_btn + tamanho_crud_btn) {
+						escreva("edit", linha)
+					}
 				}
 				g.desenhar_linha(margin, posicaoY + 35, largura_janela_inicio - margin, posicaoY + 35)
 				posicaoY += 50
+			} 
+			se(semProdutos) {
+				cadeia texto = "Sem produtos cadastrados :/"
+				g.desenhar_texto((largura_janela_inicio / 2) - (g.largura_texto(texto) / 2), (altura_janela_inicio / 2) - (g.altura_texto(texto) / 2), texto)	
 			}
 			linha++
 		}
@@ -875,14 +889,62 @@ programa
 		}
 		a.fechar_arquivo(usuarios)
 	}
+
+	funcao salvar_produto() {
+		inteiro produtos = a.abrir_arquivo("produtos.txt", a.MODO_LEITURA), linha = 0
+		logico x = falso, produto_existe = falso
+		cadeia conteudoLinha = "", nome
+		enquanto(x == falso) {
+			conteudoLinha = a.ler_linha(produtos)
+			x = a.fim_arquivo(produtos)
+			se(conteudoLinha != ""){
+				inteiro p1 = 0, p2 = 0	
+				lerDadoLinha(3, p1, p2, conteudoLinha)	
+				nome = tx.extrair_subtexto(conteudoLinha, p1+1, p2)
+				se(nome == campos_produto[0]){
+					produto_existe = verdadeiro
+					pare
+				}
+			}
+			linha++
+		}
+		a.fechar_arquivo(produtos)
+		x = falso
+		linha = 0
+		produtos = a.abrir_arquivo("produtos.txt", a.MODO_LEITURA)
+		se(nao produto_existe) {
+			enquanto(x == falso){
+				a.ler_linha(produtos)
+				x = a.fim_arquivo(produtos)
+				se (x != verdadeiro) {
+					linha++	
+				}
+			}
+			a.fechar_arquivo(produtos) 
+			produtos = a.abrir_arquivo("produtos.txt", a.MODO_ACRESCENTAR)
+			a.escrever_linha("\n" + linha + "|\t|" + campos_produto[0] + "|\t|" + campos_produto[1] + "|\t|" + campos_produto[2] + "|\t|" + campos_produto[3] + "|", produtos)		
+		} senao {
+			escreva("\nProduto já cadastrado")
+		}
+		a.fechar_arquivo(produtos)
+	}
+
+	funcao deletar_produto(inteiro id_produto, cadeia produto) {
+		//a.substituir_texto("produtos.txt", produto, "", verdadeiro)
+		escreva(produto)
+	}
+
+	funcao editar_produto() {
+		
+	}
 }
 /* $$$ Portugol Studio $$$ 
  * 
  * Esta seção do arquivo guarda informações do Portugol Studio.
  * Você pode apagá-la se estiver utilizando outro editor.
  * 
- * @POSICAO-CURSOR = 22647; 
- * @DOBRAMENTO-CODIGO = [41, 49, 57, 65, 114, 133, 138, 319, 503, 674, 803, 826, 842, 858];
+ * @POSICAO-CURSOR = 39294; 
+ * @DOBRAMENTO-CODIGO = [41, 49, 57, 65, 114, 133, 138, 195, 233, 319, 343, 430, 506, 515, 566, 677, 688, 840, 856, 872, 892];
  * @PONTOS-DE-PARADA = ;
  * @SIMBOLOS-INSPECIONADOS = ;
  * @FILTRO-ARVORE-TIPOS-DE-DADO = inteiro, real, logico, cadeia, caracter, vazio;
